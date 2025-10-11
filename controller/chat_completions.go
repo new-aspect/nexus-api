@@ -1,5 +1,5 @@
 // controller/chat_completions.go
-package chat
+package controller
 
 import (
 	"bytes"
@@ -25,7 +25,7 @@ type Message struct {
 	Content string `json:"content"`
 }
 
-func (v *V1) ApiV1ChatCompletions(c *gin.Context) {
+func (v *V1) ApiChatCompletions(c *gin.Context) {
 	// 1. 先把 Body 读到内存
 	bodyBytes, err := io.ReadAll(c.Request.Body)
 	if err != nil {
