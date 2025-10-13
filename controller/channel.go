@@ -23,10 +23,40 @@ func (v *V1) ApiAddChannel(c *gin.Context) {
 }
 
 func GetAllChannel(c *gin.Context) {
-	channel, err := model.GetAllChannel()
+	channels, err := model.GetAllChannels()
 	if err != nil {
 		c.JSON(500, gin.H{"error": "failed to get all channels " + err.Error()})
 		return
 	}
-	c.JSON(200, gin.H{"message": "success", "data": channel})
+
+	// 每隔字段保密
+	for i, _ := range channels {
+		channels[i].Key = secretKey(channels[i].Key)
+	}
+
+	c.JSON(200, gin.H{"message": "success", "data": channels})
+}
+
+// key的第5为到倒数5位加密
+func secretKey(key string) string {
+	// 如果key长度小于等于10，则不处理
+	if len(key) <= 10 {
+		return key
+	}
+
+	// 提取前4位
+	prefix := key[:4]
+
+	middle := key[4 : len(key)-4]
+
+	suffix := key[len(key)-4:]
+
+	// 对中间部分进行加密（这里使用简单的星号替换，实际应使用真实加密算法）
+	encryptedMiddle := ""
+	for i := 0; i < len(middle); i++ {
+		encryptedMiddle += "*"
+	}
+
+	// 组合结果
+	return prefix + encryptedMiddle + suffix
 }
