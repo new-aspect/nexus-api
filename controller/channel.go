@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/new-aspect/nexus-api/model"
+	"strconv"
 )
 
 func (v *V1) ApiAddChannel(c *gin.Context) {
@@ -59,4 +60,36 @@ func secretKey(key string) string {
 
 	// 组合结果
 	return prefix + encryptedMiddle + suffix
+}
+
+type UpdateChannelReq struct {
+	Name string
+}
+
+func UpdateChannel(c *gin.Context) {
+	req := UpdateChannelReq{}
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "failed to unmarshal body " + err.Error()})
+		return
+	}
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(500, gin.H{"error": "failed to unmarshal body " + err.Error()})
+		return
+	}
+
+	channel := model.Channel{
+		ID:   id,
+		Name: req.Name,
+	}
+
+	err = channel.Update()
+	if err != nil {
+		c.JSON(500, gin.H{"error": "failed to update channel " + err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{"message": "success"})
 }

@@ -16,3 +16,7 @@ func GetAllChannels() ([]*Channel, error) {
 	err := DB.Find(&channels).Error
 	return channels, err
 }
+
+func (c *Channel) Update() error {
+	return DB.Updates(c).Error
+}
