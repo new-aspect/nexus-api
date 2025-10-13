@@ -30,6 +30,7 @@ func main() {
 	router := gin.Default()
 	router.POST("/v1/chat/completions", controllerV1.ApiChatCompletions)
 	router.POST("/v1/api/channel", controllerV1.ApiAddChannel)
+	router.GET("/v1/api/channel", controller.GetAllChannel)
 
 	if err := router.Run(":3000"); err != nil {
 		fmt.Println(err)

@@ -21,3 +21,12 @@ func (v *V1) ApiAddChannel(c *gin.Context) {
 
 	c.JSON(200, gin.H{"message": "success"})
 }
+
+func GetAllChannel(c *gin.Context) {
+	channel, err := model.GetAllChannel()
+	if err != nil {
+		c.JSON(500, gin.H{"error": "failed to get all channels " + err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"message": "success", "data": channel})
+}
