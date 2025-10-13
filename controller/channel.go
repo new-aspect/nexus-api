@@ -93,3 +93,22 @@ func UpdateChannel(c *gin.Context) {
 
 	c.JSON(200, gin.H{"message": "success"})
 }
+
+func DeleteChannel(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(500, gin.H{"error": "failed to unmarshal body " + err.Error()})
+		return
+	}
+
+	channel := model.Channel{
+		ID: id,
+	}
+
+	err = channel.Delete()
+	if err != nil {
+		c.JSON(500, gin.H{"error": "failed to delete id " + err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"message": "success"})
+}

@@ -32,6 +32,7 @@ func main() {
 	router.POST("/v1/api/channel", controllerV1.ApiAddChannel)
 	router.GET("/v1/api/channel", controller.GetAllChannel)
 	router.PUT("/v1/api/channel/:id", controller.UpdateChannel)
+	router.DELETE("/v1/api/channel/:id", controller.DeleteChannel)
 
 	if err := router.Run(":3000"); err != nil {
 		fmt.Println(err)

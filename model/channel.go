@@ -20,3 +20,7 @@ func GetAllChannels() ([]*Channel, error) {
 func (c *Channel) Update() error {
 	return DB.Updates(c).Error
 }
+
+func (c *Channel) Delete() error {
+	return DB.Delete(c).Error
+}
