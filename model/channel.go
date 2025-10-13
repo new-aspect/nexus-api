@@ -24,3 +24,7 @@ func (c *Channel) Update() error {
 func (c *Channel) Delete() error {
 	return DB.Delete(c).Error
 }
+
+func (c *Channel) HasKey() bool {
+	return c.Key != ""
+}

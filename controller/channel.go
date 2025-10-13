@@ -14,6 +14,11 @@ func (v *V1) ApiAddChannel(c *gin.Context) {
 		return
 	}
 
+	if !channel.HasKey() {
+		c.JSON(400, gin.H{"error": "请求体中缺少了 key 字段"})
+		return
+	}
+
 	err = channel.Insert()
 	if err != nil {
 		c.JSON(500, gin.H{"error": "failed to insert channel " + err.Error()})
