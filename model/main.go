@@ -12,5 +12,13 @@ func InitDB() (err error) {
 	if err != nil {
 		return err
 	}
-	return DB.AutoMigrate(&Channel{})
+
+	if err = DB.AutoMigrate(&Channel{}); err != nil {
+		return err
+	}
+	if err = DB.AutoMigrate(&Token{}); err != nil {
+		return err
+	}
+
+	return
 }
