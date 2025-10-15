@@ -1,6 +1,11 @@
 package model
 
-import "github.com/google/uuid"
+import (
+	"errors"
+	"github.com/google/uuid"
+	"github.com/new-aspect/nexus-api/common"
+	"strings"
+)
 
 type Token struct {
 	Id           int    `json:"id"`
@@ -40,4 +45,29 @@ func (t *Token) Update() error {
 
 func (t *Token) Delete() error {
 	return DB.Delete(t).Error
+}
+
+func ValidateUseToken(key string) (*Token, error) {
+	if key == "" {
+		return nil, errors.New("未提供 token")
+	}
+	key = strings.TrimPrefix(key, "Bearer ")
+	token := &Token{}
+	err := DB.Where("key = ?", key).Find(token).Error
+	if err != nil {
+		return nil, err
+	}
+
+	if token.Status != common.TokenStatusEnable {
+		return nil, errors.New("该 token 已被禁用")
+	}
+
+	go func() {
+		token.AccessedTime = common.GetTimestamp()
+		if err = token.Update(); err != nil {
+			common.SysError("更新 token 访问时间失败：" + err.Error())
+		}
+	}()
+
+	return token, nil
 }
