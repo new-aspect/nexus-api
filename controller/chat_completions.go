@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/new-aspect/nexus-api/common"
 	"io"
 	"net/http"
 )
@@ -25,7 +26,11 @@ type Message struct {
 	Content string `json:"content"`
 }
 
-func (v *V1) ApiChatCompletions(c *gin.Context) {
+func ChatCompletions(c *gin.Context) {
+
+	channelType := c.GetInt("channel")
+	baseUrl := common.ChannelBaseURLs[channelType]
+
 	// 1. 先把 Body 读到内存
 	bodyBytes, err := io.ReadAll(c.Request.Body)
 	if err != nil {
@@ -49,7 +54,7 @@ func (v *V1) ApiChatCompletions(c *gin.Context) {
 		return
 	}
 
-	request, err := buildForwardRequest(bodyBytes, http.MethodPost, v.ForwardHost+"/v1/chat/completions", v.ApiKey)
+	request, err := buildForwardRequest(bodyBytes, http.MethodPost, fmt.Sprintf("%s%s", baseUrl, c.Request.URL.String()))
 	if err != nil {
 		c.JSON(500, gin.H{
 			"status": 500,
@@ -57,6 +62,7 @@ func (v *V1) ApiChatCompletions(c *gin.Context) {
 		})
 		return
 	}
+	request.Header = c.Request.Header.Clone()
 
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
@@ -73,13 +79,13 @@ func (v *V1) ApiChatCompletions(c *gin.Context) {
 
 // 接收原始请求体、目标URL和API Key
 // 返回一个构建好的 http.Request 对象，或者一个错误
-func buildForwardRequest(bodyBytes []byte, method string, targetUrl string, apiKey string) (*http.Request, error) {
+func buildForwardRequest(bodyBytes []byte, method string, targetUrl string) (*http.Request, error) {
 	request, err := http.NewRequest(method, targetUrl, bytes.NewBuffer(bodyBytes))
 	if err != nil {
 		return nil, err
 	}
 
-	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
 	request.Header.Set("Content-Type", "application/json")
+
 	return request, nil
 }

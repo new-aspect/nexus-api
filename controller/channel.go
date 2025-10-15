@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-func (v *V1) ApiAddChannel(c *gin.Context) {
+func AddChannel(c *gin.Context) {
 	channel := model.Channel{}
 	err := c.ShouldBindJSON(&channel)
 	if err != nil {
@@ -86,7 +86,7 @@ func UpdateChannel(c *gin.Context) {
 	}
 
 	channel := model.Channel{
-		ID:   id,
+		Id:   id,
 		Name: req.Name,
 	}
 
@@ -107,7 +107,7 @@ func DeleteChannel(c *gin.Context) {
 	}
 
 	channel := model.Channel{
-		ID: id,
+		Id: id,
 	}
 
 	err = channel.Delete()

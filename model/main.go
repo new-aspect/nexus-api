@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/new-aspect/nexus-api/common"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -19,6 +20,8 @@ func InitDB() (err error) {
 	if err = DB.AutoMigrate(&Token{}); err != nil {
 		return err
 	}
+
+	common.UsingSQLite = true
 
 	return
 }

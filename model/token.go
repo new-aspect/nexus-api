@@ -25,7 +25,9 @@ func (t *Token) InitKeyIfNotExits() {
 }
 
 func genUUID() string {
-	return uuid.New().String()
+	code := uuid.New().String()
+	code = strings.Replace(code, "-", "", -1)
+	return code
 }
 
 // 创建Token
@@ -53,7 +55,7 @@ func ValidateUseToken(key string) (*Token, error) {
 	}
 	key = strings.TrimPrefix(key, "Bearer ")
 	token := &Token{}
-	err := DB.Where("key = ?", key).Find(token).Error
+	err := DB.Where("key = ?", key).First(token).Error
 	if err != nil {
 		return nil, err
 	}

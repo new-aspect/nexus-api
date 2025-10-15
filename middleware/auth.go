@@ -15,6 +15,7 @@ func TokenAuth() gin.HandlerFunc {
 		if authHeader == "" {
 			c.JSON(401, gin.H{"error": "Authorization header required"})
 			c.Abort()
+			return
 		}
 
 		parts := strings.Split(authHeader, "-")
@@ -23,6 +24,7 @@ func TokenAuth() gin.HandlerFunc {
 		token, err := model.ValidateUseToken(key)
 		if err != nil {
 			c.JSON(401, gin.H{"error": "Invalid Authorization token " + err.Error()})
+			c.Abort()
 			return
 		}
 		c.Set("id", token.UserId)
