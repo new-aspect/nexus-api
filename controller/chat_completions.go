@@ -2,8 +2,6 @@
 package controller
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/new-aspect/nexus-api/common"
@@ -26,66 +24,27 @@ type Message struct {
 	Content string `json:"content"`
 }
 
+// 我这边写思路，这里的reply只做转发，我记得是用io.Copy进行转发，转发前用http生成一个请求，复制请求头
+// 这个思路不对，应该改成这样的思路
+// 拿到请求的参数->按请求参数转发->拿到转发的响应结果->将结果拼装回本次请求
+
 func ChatCompletions(c *gin.Context) {
+	chanType := c.GetInt("channel")
+	baseUrl := common.ChannelBaseURLs[chanType]
 
-	channelType := c.GetInt("channel")
-	baseUrl := common.ChannelBaseURLs[channelType]
-
-	// 1. 先把 Body 读到内存
-	bodyBytes, err := io.ReadAll(c.Request.Body)
+	request, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s%s", baseUrl, c.Request.URL.String()), c.Request.Body)
 	if err != nil {
-		c.JSON(500, gin.H{"error": "failed to read request body " + err.Error()})
+		c.JSON(500, gin.H{"error": "无法构造请求" + err.Error()})
 		return
 	}
-	// 别忘了在高并发场景下要关闭 Body
-	defer c.Request.Body.Close()
+	request.Header = c.Request.Header
 
-	// 校验
-	var req RequestBody
-	err = json.Unmarshal(bodyBytes, &req)
+	client := http.Client{}
+	response, err := client.Do(request)
+
+	_, err = io.Copy(c.Writer, response.Body)
 	if err != nil {
-		c.JSON(500, gin.H{"error": "failed to unmarshal body " + err.Error()})
+		c.JSON(500, gin.H{"error": "转发报错" + err.Error()})
 		return
 	}
-
-	// 校验看
-	if len(req.Messages) == 0 {
-		c.JSON(400, gin.H{"error": "message body can't be empty "})
-		return
-	}
-
-	request, err := buildForwardRequest(bodyBytes, http.MethodPost, fmt.Sprintf("%s%s", baseUrl, c.Request.URL.String()))
-	if err != nil {
-		c.JSON(500, gin.H{
-			"status": 500,
-			"err":    err.Error(),
-		})
-		return
-	}
-	request.Header = c.Request.Header.Clone()
-
-	resp, err := http.DefaultClient.Do(request)
-	if err != nil {
-		c.JSON(500, gin.H{
-			"status": 500,
-			"err":    err.Error(),
-		})
-		return
-	}
-
-	c.DataFromReader(resp.StatusCode, resp.ContentLength, "", resp.Body, nil)
-
-}
-
-// 接收原始请求体、目标URL和API Key
-// 返回一个构建好的 http.Request 对象，或者一个错误
-func buildForwardRequest(bodyBytes []byte, method string, targetUrl string) (*http.Request, error) {
-	request, err := http.NewRequest(method, targetUrl, bytes.NewBuffer(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-
-	request.Header.Set("Content-Type", "application/json")
-
-	return request, nil
 }
